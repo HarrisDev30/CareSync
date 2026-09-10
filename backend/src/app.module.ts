@@ -5,25 +5,29 @@ import { APP_FILTER, APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 
 // Entities
 import { User } from './modules/users/entities/user.entity';
-import { AuditLog } from './modules/audit-log/entities/audit-log.entity';
 import { Patient } from './modules/patients/entities/patient.entity';
+import { Appointment } from './modules/appointments/entities/appointment.entity';
 import { Consultation } from './modules/consultations/entities/consultation.entity';
 import { ConsultationCorrection } from './modules/corrections/entities/consultation-correction.entity';
-import { Appointment } from './modules/appointments/entities/appointment.entity';
+import { DiagnosticOrder } from './modules/diagnostics/entities/diagnostic-order.entity';
+import { DiagnosticResult } from './modules/diagnostics/entities/diagnostic-result.entity';
+import { AuditLog } from './modules/audit-log/entities/audit-log.entity';
 
 // Modules
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
-import { AuditLogModule } from './modules/audit-log/audit-log.module';
 import { PatientsModule } from './modules/patients/patients.module';
+import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { ConsultationsModule } from './modules/consultations/consultations.module';
+import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
+import { AuditLogModule } from './modules/audit-log/audit-log.module';
 
 // Common Providers
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { AuditInterceptor } from './common/interceptors/audit.interceptor';
-import { RedisService } from './common/services/redis.service';
 import { RolesGuard } from './common/guards/roles.guard';
+import { RedisService } from './common/services/redis.service';
 
 @Module({
   imports: [
@@ -43,11 +47,13 @@ import { RolesGuard } from './common/guards/roles.guard';
         database: configService.get<string>('DB_NAME', 'caresync_db'),
         entities: [
           User,
-          AuditLog,
           Patient,
+          Appointment,
           Consultation,
           ConsultationCorrection,
-          Appointment,
+          DiagnosticOrder,
+          DiagnosticResult,
+          AuditLog,
         ],
         synchronize: configService.get<string>('NODE_ENV') !== 'production',
         logging: false,
@@ -57,9 +63,11 @@ import { RolesGuard } from './common/guards/roles.guard';
     }),
     AuthModule,
     UsersModule,
-    AuditLogModule,
     PatientsModule,
+    AppointmentsModule,
     ConsultationsModule,
+    DiagnosticsModule,
+    AuditLogModule,
   ],
   providers: [
     RedisService,
