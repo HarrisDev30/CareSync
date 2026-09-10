@@ -5,14 +5,17 @@ import { APP_FILTER, APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 
 // Entities
 import { User } from './modules/users/entities/user.entity';
+import { AuditLog } from './modules/audit-log/entities/audit-log.entity';
 
 // Modules
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { AuditLogModule } from './modules/audit-log/audit-log.module';
 
 // Common Providers
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { AuditInterceptor } from './common/interceptors/audit.interceptor';
 import { RedisService } from './common/services/redis.service';
 import { RolesGuard } from './common/guards/roles.guard';
 
@@ -32,7 +35,7 @@ import { RolesGuard } from './common/guards/roles.guard';
         username: configService.get<string>('DB_USER', 'caresync'),
         password: configService.get<string>('DB_PASSWORD', 'caresync_secure_password_2026'),
         database: configService.get<string>('DB_NAME', 'caresync_db'),
-        entities: [User],
+        entities: [User, AuditLog],
         synchronize: configService.get<string>('NODE_ENV') !== 'production',
         logging: false,
         retryAttempts: 2,
@@ -41,6 +44,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     }),
     AuthModule,
     UsersModule,
+    AuditLogModule,
   ],
   providers: [
     RedisService,
@@ -51,6 +55,10 @@ import { RolesGuard } from './common/guards/roles.guard';
     {
       provide: APP_INTERCEPTOR,
       useClass: TransformInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditInterceptor,
     },
     {
       provide: APP_GUARD,
