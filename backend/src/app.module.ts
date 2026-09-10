@@ -7,12 +7,16 @@ import { APP_FILTER, APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 import { User } from './modules/users/entities/user.entity';
 import { AuditLog } from './modules/audit-log/entities/audit-log.entity';
 import { Patient } from './modules/patients/entities/patient.entity';
+import { Consultation } from './modules/consultations/entities/consultation.entity';
+import { ConsultationCorrection } from './modules/corrections/entities/consultation-correction.entity';
+import { Appointment } from './modules/appointments/entities/appointment.entity';
 
 // Modules
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { AuditLogModule } from './modules/audit-log/audit-log.module';
 import { PatientsModule } from './modules/patients/patients.module';
+import { ConsultationsModule } from './modules/consultations/consultations.module';
 
 // Common Providers
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
@@ -37,7 +41,14 @@ import { RolesGuard } from './common/guards/roles.guard';
         username: configService.get<string>('DB_USER', 'caresync'),
         password: configService.get<string>('DB_PASSWORD', 'caresync_secure_password_2026'),
         database: configService.get<string>('DB_NAME', 'caresync_db'),
-        entities: [User, AuditLog, Patient],
+        entities: [
+          User,
+          AuditLog,
+          Patient,
+          Consultation,
+          ConsultationCorrection,
+          Appointment,
+        ],
         synchronize: configService.get<string>('NODE_ENV') !== 'production',
         logging: false,
         retryAttempts: 2,
@@ -48,6 +59,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     UsersModule,
     AuditLogModule,
     PatientsModule,
+    ConsultationsModule,
   ],
   providers: [
     RedisService,
