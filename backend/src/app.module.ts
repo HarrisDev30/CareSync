@@ -3,6 +3,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_FILTER, APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 
+// Entities
+import { User } from './modules/users/entities/user.entity';
+
+// Modules
+import { AuthModule } from './modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
+
 // Common Providers
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
@@ -25,13 +32,15 @@ import { RolesGuard } from './common/guards/roles.guard';
         username: configService.get<string>('DB_USER', 'caresync'),
         password: configService.get<string>('DB_PASSWORD', 'caresync_secure_password_2026'),
         database: configService.get<string>('DB_NAME', 'caresync_db'),
-        entities: [],
+        entities: [User],
         synchronize: configService.get<string>('NODE_ENV') !== 'production',
         logging: false,
         retryAttempts: 2,
         retryDelay: 1000,
       }),
     }),
+    AuthModule,
+    UsersModule,
   ],
   providers: [
     RedisService,
