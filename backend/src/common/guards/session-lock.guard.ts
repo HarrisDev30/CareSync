@@ -53,12 +53,16 @@ export class SessionLockGuard implements CanActivate {
     const lastActive = await this.redisService.get(lastActiveKey);
 
     if (!lastActive) {
-      // Inactivity timeout reached! Lock session
-      await this.redisService.set(lockKey, 'true', 3600);
-      throw new HttpException(
-        'Session inactive. Workstation auto-locked after 15 minutes of inactivity. Re-authentication required.',
-        HttpStatus.LOCKED, // HTTP 423
-      );
+      // Check token issue time (iat in seconds) to differentiate server cache restart from genuine inactivity
+      const tokenAgeSec = user.iat !== undefined ? (Date.now() / 1000) - user.iat : 9999;
+      if (tokenAgeSec >= 900) {
+        // Genuine inactivity timeout reached! Lock session
+        await this.redisService.set(lockKey, 'true', 3600);
+        throw new HttpException(
+          'Session inactive. Workstation auto-locked after 15 minutes of inactivity. Re-authentication required.',
+          HttpStatus.LOCKED, // HTTP 423
+        );
+      }
     }
 
     // Refresh the 15-minute sliding window (900 seconds)

@@ -102,14 +102,33 @@ export class PatientsService {
         } catch {}
       }
 
+      let decryptedEmergencyPhone = '';
+      if (p.emergencyContactPhoneEncrypted) {
+        try {
+          decryptedEmergencyPhone = this.cryptoService.decrypt(p.emergencyContactPhoneEncrypted);
+        } catch {}
+      }
+
+      const emergencyContact = p.emergencyContactName
+        ? decryptedEmergencyPhone
+          ? `${p.emergencyContactName} — ${decryptedEmergencyPhone}`
+          : p.emergencyContactName
+        : '';
+
       return {
         id: p.id,
         mrn: p.mrn,
         fullName: p.fullName,
+        firstName: p.firstName,
+        lastName: p.lastName,
         dateOfBirth: p.dateOfBirth,
         gender: p.gender,
         bloodType: p.bloodType,
+        phone: decryptedPhone || '',
+        phoneNumber: decryptedPhone || '',
         maskedPhone: decryptedPhone ? this.cryptoService.maskPhone(decryptedPhone) : '',
+        emergencyContact,
+        knownAllergies: p.knownAllergies || [],
         createdAt: p.createdAt,
       };
     });

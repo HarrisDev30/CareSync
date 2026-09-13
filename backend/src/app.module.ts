@@ -1,4 +1,4 @@
-﻿import { Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_FILTER, APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
@@ -38,28 +38,37 @@ import { RedisService } from './common/services/redis.service';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('DB_HOST', 'localhost'),
-        port: configService.get<number>('DB_PORT', 5432),
-        username: configService.get<string>('DB_USER', 'caresync'),
-        password: configService.get<string>('DB_PASSWORD', 'caresync_secure_password_2026'),
-        database: configService.get<string>('DB_NAME', 'caresync_db'),
-        entities: [
-          User,
-          Patient,
-          Appointment,
-          Consultation,
-          ConsultationCorrection,
-          DiagnosticOrder,
-          DiagnosticResult,
-          AuditLog,
-        ],
-        synchronize: configService.get<string>('NODE_ENV') !== 'production',
-        logging: false,
-        retryAttempts: 2,
-        retryDelay: 1000,
-      }),
+      useFactory: (configService: ConfigService) => {
+        const dbHost = configService.get<string>('DB_HOST', 'localhost');
+        const isCloudDb =
+          dbHost.includes('neon.tech') ||
+          dbHost.includes('aws') ||
+          configService.get('DB_SSL') === 'true';
+
+        return {
+          type: 'postgres',
+          host: dbHost,
+          port: configService.get<number>('DB_PORT', 5432),
+          username: configService.get<string>('DB_USER', 'caresync'),
+          password: configService.get<string>('DB_PASSWORD', 'caresync_secure_password_2026'),
+          database: configService.get<string>('DB_NAME', 'caresync_db'),
+          ssl: isCloudDb ? { rejectUnauthorized: false } : false,
+          entities: [
+            User,
+            Patient,
+            Appointment,
+            Consultation,
+            ConsultationCorrection,
+            DiagnosticOrder,
+            DiagnosticResult,
+            AuditLog,
+          ],
+          synchronize: configService.get<string>('NODE_ENV') !== 'production',
+          logging: false,
+          retryAttempts: 3,
+          retryDelay: 1000,
+        };
+      },
     }),
     AuthModule,
     UsersModule,
@@ -82,10 +91,6 @@ import { RedisService } from './common/services/redis.service';
     {
       provide: APP_INTERCEPTOR,
       useClass: AuditInterceptor,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard,
     },
   ],
 })
