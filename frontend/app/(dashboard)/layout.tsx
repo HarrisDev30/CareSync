@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Lock,
   Unlock,
@@ -42,6 +42,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [currentStaff, setCurrentStaff] = useState<StaffUser>(STAFF_PRESETS[0]);
   const [isLocked, setIsLocked] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -59,9 +60,15 @@ export default function DashboardLayout({
     setCurrentStaff(staff);
     await setActiveStaffUser(staff);
     triggerToast(`Switched active terminal to ${staff.fullName} (${staff.role})`);
+    if (staff.role === 'PATIENT') {
+      router.push('/patient-portal');
+    } else if (pathname === '/patient-portal') {
+      router.push('/');
+    }
   };
 
   const getPageTitle = () => {
+    if (pathname === '/patient-portal') return 'My Patient Health Portal';
     if (pathname === '/') return 'Front Desk Overview';
     if (pathname.startsWith('/patients')) return 'Patient Admissions & Registry';
     if (pathname.startsWith('/appointments')) return 'Consultation Scheduling & Triage';

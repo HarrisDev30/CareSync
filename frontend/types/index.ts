@@ -115,6 +115,32 @@ export interface StaffUser {
   id: string;
   email: string;
   fullName: string;
-  role: 'PHYSICIAN' | 'RECEPTIONIST' | 'LABORATORY_USER' | 'ADMINISTRATOR' | 'TRIAGE_NURSE';
+  role: 'PHYSICIAN' | 'RECEPTIONIST' | 'LABORATORY_USER' | 'ADMINISTRATOR' | 'TRIAGE_NURSE' | 'PATIENT';
   department: string;
+  mrn?: string;
+  patientId?: string;
 }
+
+export interface PatientVital {
+  id: string;
+  recordedAt: string;
+  bloodPressure: string;
+  heartRate: number;
+  oxygenSaturation: number;
+  temperature: number;
+  respiratoryRate: number;
+  weightKg?: number;
+  notes?: string;
+}
+
+export interface PatientMedication {
+  id: string;
+  name: string;
+  dosage: string;
+  frequency: string;
+  prescribedBy: string;
+  startDate: string;
+  instructions: string;
+  status: 'Active' | 'Discontinued' | 'As Needed';
+}
+

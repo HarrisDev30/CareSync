@@ -6,6 +6,8 @@ import {
   LabOrder,
   AuditLogEntry,
   StaffUser,
+  PatientVital,
+  PatientMedication,
 } from '../types';
 
 export const STAFF_PRESETS: StaffUser[] = [
@@ -43,6 +45,15 @@ export const STAFF_PRESETS: StaffUser[] = [
     fullName: 'System Administrator',
     role: 'ADMINISTRATOR',
     department: 'IT & Compliance',
+  },
+  {
+    id: 'p-1',
+    email: 'eleanor.vance@patient.caresync.org',
+    fullName: 'Eleanor Vance',
+    role: 'PATIENT',
+    department: 'Patient Self-Service Portal',
+    mrn: 'MRN-90214',
+    patientId: 'p-1',
   },
 ];
 
@@ -873,3 +884,123 @@ function calculateAge(dobString: string): number {
   }
   return Math.max(0, age);
 }
+
+export const ELEANOR_VITALS: PatientVital[] = [
+  {
+    id: 'vit-1',
+    recordedAt: '2026-09-12T09:15:00Z',
+    bloodPressure: '118/76 mmHg',
+    heartRate: 72,
+    oxygenSaturation: 98,
+    temperature: 98.4,
+    respiratoryRate: 16,
+    weightKg: 64.2,
+    notes: 'Resting vitals recorded during annual wellness consult. Patient reports stable energy levels and adherence to medication plan.',
+  },
+  {
+    id: 'vit-2',
+    recordedAt: '2026-06-10T14:30:00Z',
+    bloodPressure: '122/80 mmHg',
+    heartRate: 76,
+    oxygenSaturation: 99,
+    temperature: 98.6,
+    respiratoryRate: 15,
+    weightKg: 64.8,
+    notes: 'Routine 3-month follow-up. Blood pressure within target range.',
+  },
+  {
+    id: 'vit-3',
+    recordedAt: '2026-03-04T10:00:00Z',
+    bloodPressure: '128/84 mmHg',
+    heartRate: 80,
+    oxygenSaturation: 98,
+    temperature: 98.7,
+    respiratoryRate: 16,
+    weightKg: 65.1,
+    notes: 'Initial evaluation for lipid panel review.',
+  },
+];
+
+export const ELEANOR_MEDICATIONS: PatientMedication[] = [
+  {
+    id: 'med-1',
+    name: 'Atorvastatin (Lipitor)',
+    dosage: '20 mg',
+    frequency: 'Once daily at bedtime',
+    prescribedBy: 'Dr. Sarah Chen, MD',
+    startDate: '2025-11-04',
+    instructions: 'Take orally once per day at bedtime. Avoid excessive grapefruit consumption.',
+    status: 'Active',
+  },
+  {
+    id: 'med-2',
+    name: 'Lisinopril',
+    dosage: '10 mg',
+    frequency: 'Once daily in the morning',
+    prescribedBy: 'Dr. Sarah Chen, MD',
+    startDate: '2025-08-15',
+    instructions: 'Take in the morning with a full glass of water. Report any sudden cough or dizziness.',
+    status: 'Active',
+  },
+  {
+    id: 'med-3',
+    name: 'Metformin',
+    dosage: '500 mg',
+    frequency: 'Twice daily with meals',
+    prescribedBy: 'Dr. Sarah Chen, MD',
+    startDate: '2026-01-10',
+    instructions: 'Take with morning and evening meals to minimize GI discomfort.',
+    status: 'Active',
+  },
+  {
+    id: 'med-4',
+    name: 'Amoxicillin Trihydrate',
+    dosage: '500 mg',
+    frequency: 'Every 8 hours for 10 days',
+    prescribedBy: 'Dr. Marcus Vance, MD',
+    startDate: '2025-03-12',
+    instructions: 'Completed 10-day acute respiratory course. Discontinued.',
+    status: 'Discontinued',
+  },
+];
+
+export async function fetchPatientPortalData(mrn = 'MRN-90214') {
+  const [allPatients, allAppointments, allLabs] = await Promise.all([
+    fetchPatients(),
+    fetchAppointments(),
+    fetchLabOrders(),
+  ]);
+
+  const patient = allPatients.find((p) => p.mrn === mrn) || allPatients[0];
+  const appointments = allAppointments.filter(
+    (a) => a.mrn === mrn || (patient && a.patientId === patient.id) || a.patientName.includes('Eleanor'),
+  );
+  const labOrders = allLabs.filter(
+    (l) => l.mrn === mrn || (patient && l.patientId === patient.id) || l.patientName.includes('Eleanor'),
+  );
+
+  return {
+    patient: patient || {
+      id: 'p-1',
+      mrn: 'MRN-90214',
+      fullName: 'Eleanor Vance',
+      firstName: 'Eleanor',
+      lastName: 'Vance',
+      gender: 'Female' as const,
+      dateOfBirth: '1982-05-14',
+      age: 42,
+      bloodType: 'O+' as const,
+      phone: '(555) 349-8201',
+      status: 'Active' as const,
+      primaryPhysician: 'Dr. Sarah Chen, MD',
+      allergies: ['Penicillin', 'Sulfa drugs'],
+      emergencyContact: 'Thomas Vance (Spouse) — +1 (555) 349-8209',
+      createdAt: '2026-09-01T08:30:00Z',
+    },
+    appointments,
+    labOrders,
+    vitals: ELEANOR_VITALS,
+    medications: ELEANOR_MEDICATIONS,
+  };
+}
+
