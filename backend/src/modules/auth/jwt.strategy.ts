@@ -25,7 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: JwtPayload) {
+  async validate(payload: JwtPayload & { iat?: number }) {
     // Check if token was revoked via Redis blacklist
     const isRevoked = await this.redisService.get(`session:${payload.sub}:revoked`);
     if (isRevoked === 'true') {
@@ -37,7 +37,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('User account is deactivated');
     }
 
-    return user;
+    return Object.assign(user, { iat: payload.iat });
   }
 }
 

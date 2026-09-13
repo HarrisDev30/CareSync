@@ -40,3 +40,14 @@ redis_data/
 .agent/
 skills-lock.json
 .documents/
+
+# Local Documentation, Artifacts, and Scratch PDF Generators (Local Only - Do Not Push)
+*.pdf
+*.html
+*.png
+CARESYNC_BACKEND_SYSTEM_DESIGN_AND_CRUD_SPEC.md
+CARESYNC_DEFENSE_MASTER_PLAYBOOK.md
+build_pdf.js
+generate_*.js
+render_formal_pdf.js
+database/

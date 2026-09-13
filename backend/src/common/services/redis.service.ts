@@ -8,8 +8,8 @@ export class RedisService implements OnModuleDestroy {
   private client: Redis | null = null;
   private isConnected = false;
 
-  // In-memory fallback cache when Redis is offline
-  private readonly memoryStore = new Map<string, { value: string; expiresAt?: number }>();
+  // In-memory fallback cache when Redis is offline (static so shared across module instances)
+  private static readonly memoryStore = new Map<string, { value: string; expiresAt?: number }>();
 
   constructor(private readonly configService: ConfigService) {
     const host = this.configService.get<string>('REDIS_HOST', 'localhost');
@@ -59,10 +59,10 @@ export class RedisService implements OnModuleDestroy {
       }
     }
 
-    const entry = this.memoryStore.get(key);
+    const entry = RedisService.memoryStore.get(key);
     if (!entry) return null;
     if (entry.expiresAt && entry.expiresAt <= Date.now()) {
-      this.memoryStore.delete(key);
+      RedisService.memoryStore.delete(key);
       return null;
     }
     return entry.value;
@@ -83,7 +83,7 @@ export class RedisService implements OnModuleDestroy {
     }
 
     const expiresAt = ttlSeconds ? Date.now() + ttlSeconds * 1000 : undefined;
-    this.memoryStore.set(key, { value, expiresAt });
+    RedisService.memoryStore.set(key, { value, expiresAt });
   }
 
   async del(key: string): Promise<void> {
@@ -94,7 +94,7 @@ export class RedisService implements OnModuleDestroy {
         // Fallback to memory
       }
     }
-    this.memoryStore.delete(key);
+    RedisService.memoryStore.delete(key);
   }
 
   async delByPattern(pattern: string): Promise<void> {
@@ -110,9 +110,9 @@ export class RedisService implements OnModuleDestroy {
     }
 
     const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
-    for (const key of this.memoryStore.keys()) {
+    for (const key of RedisService.memoryStore.keys()) {
       if (regex.test(key)) {
-        this.memoryStore.delete(key);
+        RedisService.memoryStore.delete(key);
       }
     }
   }
